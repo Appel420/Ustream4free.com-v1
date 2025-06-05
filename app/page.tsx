@@ -12,6 +12,7 @@ import { DraggableWindow } from "@/components/draggable-window"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Play,
   Square,
@@ -226,6 +227,8 @@ export default function Ustream4Free() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [deviceType, setDeviceType] = useState<"desktop" | "tablet" | "mobile">("desktop")
   const [showDonateModal, setShowDonateModal] = useState(false)
+  const [showAddPlatformModal, setShowAddPlatformModal] = useState(false)
+  const [newPlatformName, setNewPlatformName] = useState("")
 
   const [currentMedia, setCurrentMedia] = useState<any>(null)
   const [showLayoutManager, setShowLayoutManager] = useState(false)
@@ -291,32 +294,47 @@ export default function Ustream4Free() {
   }
 
   const addNewPlatform = () => {
-    const newPlatform: Platform = {
-      id: `custom-${Date.now()}`,
-      name: "New Platform",
-      logo: "🌐",
-      icon: <Globe className="h-4 w-4 text-blue-400" />,
-      viewers: 0,
-      isLive: false,
-      chatMessages: 0,
-      streamKeys: ["", "", "", "", ""],
-      activeKeyIndex: 0,
-      audioSettings: {
-        micEnabled: false,
-        micVolume: 50,
-        outputEnabled: false,
-        outputVolume: 50,
-      },
-      videoSettings: {
-        webcamEnabled: false,
-        webcamQuality: "720p30",
-        streamQuality: "720p30",
-        bitrate: 2500,
-        fps: 30,
-      },
-    }
+    setShowAddPlatformModal(true)
+  }
 
-    setPlatforms([...platforms, newPlatform])
+  const createNewPlatform = () => {
+    if (newPlatformName.trim()) {
+      const newPlatform: Platform = {
+        id: `custom-${Date.now()}`,
+        name: newPlatformName.trim(),
+        logo: "🌐",
+        icon: <Globe className="h-4 w-4 text-blue-400" />,
+        viewers: 0,
+        isLive: false,
+        chatMessages: 0,
+        streamKeys: ["", "", "", "", ""],
+        activeKeyIndex: 0,
+        audioSettings: {
+          micEnabled: false,
+          micVolume: 50,
+          outputEnabled: false,
+          outputVolume: 50,
+        },
+        videoSettings: {
+          webcamEnabled: false,
+          webcamQuality: "720p30",
+          streamQuality: "720p30",
+          bitrate: 2500,
+          fps: 30,
+        },
+      }
+
+      setPlatforms([...platforms, newPlatform])
+      setNewPlatformName("")
+      setShowAddPlatformModal(false)
+    }
+  }
+
+  const removePlatform = (platformId: string) => {
+    // Only allow removal of custom platforms (those with IDs starting with "custom-")
+    if (platformId.startsWith("custom-")) {
+      setPlatforms(platforms.filter((p) => p.id !== platformId))
+    }
   }
 
   // Audio/Video settings change handlers
@@ -622,7 +640,12 @@ export default function Ustream4Free() {
         <StreamDeck isStreaming={isStreaming} onToggleStream={toggleStreaming} />
 
         {/* Platform Grid */}
-        <PlatformGrid platforms={platforms} setPlatforms={setPlatforms} deviceType={deviceType} />
+        <PlatformGrid
+          platforms={platforms}
+          setPlatforms={setPlatforms}
+          deviceType={deviceType}
+          onRemovePlatform={removePlatform}
+        />
 
         {/* Music Player */}
         <MusicPlayer />
@@ -696,6 +719,46 @@ export default function Ustream4Free() {
               >
                 Close
               </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Add Platform Modal */}
+      {showAddPlatformModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <Card className="bg-gray-900 border-gray-700 w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Add New Platform</h2>
+            <p className="text-gray-300 mb-6">Enter a name for your custom streaming platform.</p>
+            <div className="space-y-4">
+              <Input
+                type="text"
+                placeholder="Platform name (e.g., Custom RTMP, Local Server)"
+                value={newPlatformName}
+                onChange={(e) => setNewPlatformName(e.target.value)}
+                className="bg-gray-800 border-gray-600 text-white"
+                onKeyPress={(e) => e.key === "Enter" && createNewPlatform()}
+              />
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={createNewPlatform}
+                  disabled={!newPlatformName.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Platform
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  onClick={() => {
+                    setShowAddPlatformModal(false)
+                    setNewPlatformName("")
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

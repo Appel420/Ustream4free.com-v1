@@ -20,6 +20,7 @@ import {
   Video,
   VideoOff,
   Settings,
+  Trash2,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
@@ -54,6 +55,7 @@ interface PlatformGridProps {
   platforms: Platform[]
   setPlatforms: (platforms: Platform[]) => void
   deviceType: "desktop" | "tablet" | "mobile"
+  onRemovePlatform?: (platformId: string) => void
 }
 
 // Stream quality options with comprehensive range from 260p to 8K
@@ -141,7 +143,7 @@ const WEBCAM_QUALITIES = [
   { value: "8k120", label: "8K @ 120fps" },
 ]
 
-export function PlatformGrid({ platforms, setPlatforms, deviceType }: PlatformGridProps) {
+export function PlatformGrid({ platforms, setPlatforms, deviceType, onRemovePlatform }: PlatformGridProps) {
   const [popoutWindows, setPopoutWindows] = useState<Map<string, Window>>(new Map())
 
   const togglePlatform = (platformId: string) => {
@@ -872,7 +874,19 @@ export function PlatformGrid({ platforms, setPlatforms, deviceType }: PlatformGr
                   </div>
                 </div>
               </div>
-              <Switch checked={platform.isLive} onCheckedChange={() => togglePlatform(platform.id)} />
+              <div className="flex items-center gap-2">
+                <Switch checked={platform.isLive} onCheckedChange={() => togglePlatform(platform.id)} />
+                {platform.id.startsWith("custom-") && onRemovePlatform && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0 border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                    onClick={() => onRemovePlatform(platform.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
